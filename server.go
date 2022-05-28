@@ -16,7 +16,7 @@ import (
 
 type (
 	// OpenHandler handles when a connection is open.
-	OpenHandler func(c *Conn)
+	OpenHandler func(c *Conn, path string)
 	// PingHandler handles the data from a ping frame.
 	PingHandler func(c *Conn, data []byte)
 	// PongHandler receives the data from a pong frame.
@@ -215,7 +215,7 @@ func (s *Server) Upgrade(ctx *fasthttp.RequestCtx) {
 				conn.ctx = nctx
 
 				if s.openHandler != nil {
-					s.openHandler(conn)
+					s.openHandler(conn, string(ctx.Path()))
 				}
 
 				s.serveConn(conn)
@@ -337,7 +337,7 @@ func (s *Server) NetUpgrade(resp http.ResponseWriter, req *http.Request) {
 				conn.ctx = ctx
 
 				if s.openHandler != nil {
-					s.openHandler(conn)
+					s.openHandler(conn, req.URL.Path)
 				}
 
 				s.serveConn(conn)
