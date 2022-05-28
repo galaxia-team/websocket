@@ -3,9 +3,11 @@ package websocket
 import (
 	"crypto/sha1"
 	b64 "encoding/base64"
+	"errors"
 	"github.com/valyala/fasthttp"
 	"hash"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -19,6 +21,33 @@ type (
 	// UpgradeNetHandler is like UpgradeHandler but for net/http.
 	UpgradeNetHandler func(resp http.ResponseWriter, req *http.Request) bool
 )
+
+var (
+	// ErrInvalidCustomOrigin shows up when an invalid custom origin is specified.
+	ErrInvalidCustomOrigin = errors.New("invalid custom origin specified")
+)
+
+func prepareCustomOrigin(b []byte, origin string) ([]byte, error) {
+	var scheme string
+	var host string
+
+	if strings.Contains(origin, "://") {
+		so := strings.Split(origin, "://")
+
+		if so[0] != "ws" && so[0] != "wss" {
+			return emptyString, ErrInvalidCustomOrigin
+		}
+
+		scheme = so[0]
+		host = so[1]
+	} else {
+		return emptyString, ErrInvalidCustomOrigin
+	}
+
+	b = append(b[:0], scheme...)
+	b = append(b, "://"...)
+	return append(b, host...), nil
+}
 
 func prepareOrigin(b []byte, uri *fasthttp.URI) []byte {
 	b = append(b[:0], uri.Scheme()...)

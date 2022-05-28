@@ -1,6 +1,7 @@
 package websocket
 
 var (
+	emptyString         = []byte("")
 	wsString            = []byte("ws")
 	wssString           = []byte("wss")
 	originString        = []byte("Origin")

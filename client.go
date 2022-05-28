@@ -12,21 +12,28 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// ClientConfig allows setting custom options for use when connecting to a client.
+type ClientConfig struct {
+	Origin string
+	using  bool
+}
+
 var (
 	// ErrCannotUpgrade shows up when an error occurred when upgrading a connection.
-	ErrCannotUpgrade = errors.New("cannot upgrade connection")
+	ErrCannotUpgrade   = errors.New("cannot upgrade connection")
+	unusedClientConfig = ClientConfig{using: false}
 )
 
 // MakeClient returns Conn using an existing connection.
 //
 // url must be a complete URL format i.e. http://localhost:8080/ws
 func MakeClient(c net.Conn, url string) (*Client, error) {
-	return client(c, url, nil)
+	return client(c, url, nil, unusedClientConfig)
 }
 
 // ClientWithHeaders returns a Conn using an existing connection and sending custom headers.
 func ClientWithHeaders(c net.Conn, url string, req *fasthttp.Request) (*Client, error) {
-	return client(c, url, req)
+	return client(c, url, req, unusedClientConfig)
 }
 
 // UpgradeAsClient will upgrade the connection as a client
@@ -35,7 +42,9 @@ func ClientWithHeaders(c net.Conn, url string, req *fasthttp.Request) (*Client, 
 // plain framing.
 //
 // r can be nil.
-func UpgradeAsClient(c net.Conn, url string, r *fasthttp.Request) error {
+func UpgradeAsClient(c net.Conn, url string, r *fasthttp.Request, cconfig ClientConfig) error {
+	var err error
+
 	req := fasthttp.AcquireRequest()
 	res := fasthttp.AcquireResponse()
 	uri := fasthttp.AcquireURI()
@@ -51,7 +60,16 @@ func UpgradeAsClient(c net.Conn, url string, r *fasthttp.Request) error {
 	defer bytePool.Put(origin)
 	defer bytePool.Put(key)
 
-	origin = prepareOrigin(origin, uri)
+	if cconfig.using {
+		origin, err = prepareCustomOrigin(origin, cconfig.Origin)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		origin = prepareOrigin(origin, uri)
+	}
+
 	key = makeRandKey(key[:0])
 
 	if r != nil {
@@ -73,7 +91,7 @@ func UpgradeAsClient(c net.Conn, url string, r *fasthttp.Request) error {
 	req.Write(bw)
 	bw.Flush()
 
-	err := res.Read(br)
+	err = res.Read(br)
 	if err == nil {
 		if res.StatusCode() != 101 ||
 			!equalsFold(res.Header.PeekBytes(upgradeString), websocketString) {
@@ -84,8 +102,8 @@ func UpgradeAsClient(c net.Conn, url string, r *fasthttp.Request) error {
 	return err
 }
 
-func client(c net.Conn, url string, r *fasthttp.Request) (cl *Client, err error) {
-	err = UpgradeAsClient(c, url, r)
+func client(c net.Conn, url string, r *fasthttp.Request, cconfig ClientConfig) (cl *Client, err error) {
+	err = UpgradeAsClient(c, url, r, cconfig)
 	if err == nil {
 		cl = &Client{
 			c: c,
@@ -107,13 +125,13 @@ func Dial(url string) (*Client, error) {
 		MaxVersion:         tls.VersionTLS13,
 	}
 
-	return dial(url, cnf, nil)
+	return dial(url, cnf, nil, unusedClientConfig)
 }
 
 // DialTLS establishes a websocket connection as client with the
 // tls.Config. The config will be used if the URL is wss:// like.
 func DialTLS(url string, cnf *tls.Config) (*Client, error) {
-	return dial(url, cnf, nil)
+	return dial(url, cnf, nil, unusedClientConfig)
 }
 
 // DialWithHeaders establishes a websocket connection as client sending a personalized request.
@@ -123,10 +141,23 @@ func DialWithHeaders(url string, req *fasthttp.Request) (*Client, error) {
 		MinVersion:         tls.VersionTLS11,
 	}
 
-	return dial(url, cnf, req)
+	return dial(url, cnf, req, unusedClientConfig)
 }
 
-func dial(url string, cnf *tls.Config, req *fasthttp.Request) (conn *Client, err error) {
+// DialWithConfig establishes a websocket connection as client with a custom config.
+func DialWithConfig(url string, cconfig ClientConfig) (*Client, error) {
+	cnf := &tls.Config{
+		InsecureSkipVerify: false,
+		MinVersion:         tls.VersionTLS11,
+		MaxVersion:         tls.VersionTLS13,
+	}
+
+	cconfig.using = true
+
+	return dial(url, cnf, nil, cconfig)
+}
+
+func dial(url string, cnf *tls.Config, req *fasthttp.Request, cconfig ClientConfig) (conn *Client, err error) {
 	uri := fasthttp.AcquireURI()
 	defer fasthttp.ReleaseURI(uri)
 
@@ -156,7 +187,7 @@ func dial(url string, cnf *tls.Config, req *fasthttp.Request) (conn *Client, err
 	}
 
 	if err == nil {
-		conn, err = client(c, uri.String(), req)
+		conn, err = client(c, uri.String(), req, cconfig)
 		if err != nil {
 			c.Close()
 		}
