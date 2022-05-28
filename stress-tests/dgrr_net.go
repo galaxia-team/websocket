@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 )
 
 func OnMessage(c *websocket.Conn, isBinary bool, data []byte) {

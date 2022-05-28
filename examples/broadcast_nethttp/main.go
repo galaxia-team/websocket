@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 )
 
 type Broadcaster struct {

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 )

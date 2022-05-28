@@ -6,7 +6,7 @@ import (
 	"time"
 
 
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 	"github.com/valyala/fasthttp"
 )
 

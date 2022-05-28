@@ -2,12 +2,12 @@
 
 WebSocket library for [fasthttp](https://github.com/valyala/fasthttp) and [net/http](https://pkg.go.dev/net/http).
 
-Checkout [examples](https://github.com/dgrr/websocket/blob/master/examples) to inspire yourself.
+Checkout [examples](https://github.com/galaxia-team/websocket/blob/master/examples) to inspire yourself.
 
 # Install
 
 ```bash
-go get github.com/dgrr/websocket
+go get github.com/galaxia-team/websocket
 ```
 
 # Why another WebSocket package?
@@ -83,7 +83,7 @@ If while, writing we get an error, then we need to handle that client's error
 What if the writing operation is happening at the same time in 2 different coroutines?
 Then we need a sync.Mutex and block until we finish writing.
 
-To solve most of those problems [websocket](https://github.com/dgrr/websocket)
+To solve most of those problems [websocket](https://github.com/galaxia-team/websocket)
 uses channels and separated coroutines, one for reading and another one for writing.
 By following the [sharing principle](https://golang.org/doc/effective_go#sharing).
 
@@ -93,15 +93,15 @@ Following the fasthttp philosophy this library tries to take as much advantage
 of the Golang's multi-threaded model as possible,
 while keeping your code concurrently safe.
 
-To see an example of what this package CAN do that others DONT checkout [the broadcast example](https://github.com/dgrr/websocket/blob/master/examples/broadcast/main.go).
+To see an example of what this package CAN do that others DONT checkout [the broadcast example](https://github.com/galaxia-team/websocket/blob/master/examples/broadcast/main.go).
 
 # Server
 
 ## How can I launch a server?
 
-It's quite easy. You only need to create a [Server](https://pkg.go.dev/github.com/dgrr/websocket?utm_source=godoc#Server),
-set your callbacks by calling the [Handle*](https://pkg.go.dev/github.com/dgrr/websocket?utm_source=godoc#Server.HandleClose) methods
-and then specify your fasthttp handler as [Server.Upgrade](https://pkg.go.dev/github.com/dgrr/websocket?utm_source=godoc#Server.Upgrade).
+It's quite easy. You only need to create a [Server](https://pkg.go.dev/github.com/galaxia-team/websocket?utm_source=godoc#Server),
+set your callbacks by calling the [Handle*](https://pkg.go.dev/github.com/galaxia-team/websocket?utm_source=godoc#Server.HandleClose) methods
+and then specify your fasthttp handler as [Server.Upgrade](https://pkg.go.dev/github.com/galaxia-team/websocket?utm_source=godoc#Server.Upgrade).
 
 ```go
 package main
@@ -110,7 +110,7 @@ import (
 	"fmt"
 	
 	"github.com/valyala/fasthttp"
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 )
 
 func main() {
@@ -134,7 +134,7 @@ import (
 	"fmt"
 	"net/http"
 	
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 )
 
 func main() {
@@ -153,7 +153,7 @@ func OnMessage(c *websocket.Conn, isBinary bool, data []byte) {
 ## How can I handle pings?
 
 Pings are handle automatically by the library, but you can get the content of
-those pings setting the callback using [HandlePing](https://pkg.go.dev/github.com/dgrr/websocket?utm_source=godoc#Server.HandlePing).
+those pings setting the callback using [HandlePing](https://pkg.go.dev/github.com/galaxia-team/websocket?utm_source=godoc#Server.HandlePing).
 
 For example, let's try to get the round trip time to a client by using
 the PING frame. The website [http2.gofiber.io](https://http2.gofiber.io)
@@ -169,7 +169,7 @@ import (
 	"time"
 
 	"github.com/valyala/fasthttp"
-	"github.com/dgrr/websocket"
+	"github.com/galaxia-team/websocket"
 )
 
 // Struct to keep the clients connected
@@ -239,7 +239,7 @@ func OnPong(c *websocket.Conn, data []byte) {
 
 # websocket vs gorilla vs nhooyr vs gobwas
 
-| Features | [websocket](https://github.com/dgrr/websocket) | [Gorilla](https://github.com/fasthttp/websocket)| [Nhooyr](https://github.com/nhooyr/websocket) | [gowabs](https://github.com/gobwas/ws) |
+| Features | [websocket](https://github.com/galaxia-team/websocket) | [Gorilla](https://github.com/fasthttp/websocket)| [Nhooyr](https://github.com/nhooyr/websocket) | [gowabs](https://github.com/gobwas/ws) |
 | --- | --- | --- | --- | --- |
 | Concurrent R/W                          | Yes            | No           | No. Only writes | No           |
 | Passes Autobahn Test Suite              | Mostly         | Yes          | Yes             | Mostly       |    
@@ -310,4 +310,4 @@ Packet rate estimate: 148231.6↓, 72106.1↑ (1↓, 1↑ TCP MSS/op)
 Test duration: 10.0015 s.
 ```
 
-The source files are in [this](https://github.com/dgrr/websocket/tree/master/stress-tests/) folder.
+The source files are in [this](https://github.com/galaxia-team/websocket/tree/master/stress-tests/) folder.
